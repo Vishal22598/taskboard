@@ -11,6 +11,10 @@ const createTask = async (req, res) => {
       dueDate:  dueDate  || null,
       order: count
     });
+
+    // After createTask DB write:
+    req.io.to(boardId).emit('taskAdded', task);
+
     res.status(201).json(task);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -34,6 +38,9 @@ const updateTask = async (req, res) => {
       { new: true }
     ).populate('assignee', 'name email avatar');
 
+    // After updateTask DB write:
+    req.io.to(task.boardId.toString()).emit('taskUpdated', task);
+
     if (!task) return res.status(404).json({ message: 'Task not found' });
     res.json(task);
   } catch (error) {
@@ -45,6 +52,10 @@ const updateTask = async (req, res) => {
 const deleteTask = async (req, res) => {
   try {
     const task = await Task.findByIdAndDelete(req.params.id);
+
+    // After deleteTask DB write:
+    req.io.to(task.boardId.toString()).emit('taskDeleted', { taskId: task._id });
+    
     if (!task) return res.status(404).json({ message: 'Task not found' });
     res.json({ message: 'Task deleted' });
   } catch (error) {
