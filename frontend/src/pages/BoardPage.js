@@ -59,24 +59,34 @@ const BoardPage = () => {
   }, [socket]);
 
   // Wrap fetchBoard in useCallback so it has a stable reference
-const fetchBoard = useCallback(async () => {
-  try {
-    const { data } = await getBoardById(id);
-    setBoard(data.board);
-    setColumns(data.columns);
-    setTasks(data.tasks);
-  } catch {
-    toast.error('Board not found');
-    navigate('/dashboard');
-  } finally {
-    setLoading(false);
-  }
-}, [id, navigate]);
+  const fetchBoard = useCallback(async () => {
+    try {
+      const { data } = await getBoardById(id);
+      setBoard(data.board);
+      setColumns(data.columns);
+      setTasks(data.tasks);
+    } catch {
+      toast.error("Board not found");
+      navigate("/dashboard");
+    } finally {
+      setLoading(false);
+    }
+  }, [id, navigate]);
 
   //Now include fetchBoard in the dependency array safely
   useEffect(() => {
     fetchBoard();
   }, [fetchBoard]);
+
+  const handleTaskUpdate = (taskId, updatedTask) => {
+    setTasks((prev) =>
+      prev.map((t) =>
+        t._id === taskId
+          ? { ...t, ...updatedTask } // merge all updated fields
+          : t,
+      ),
+    );
+  };
 
   // Add task to a column
   const handleAddTask = async (taskData) => {
@@ -161,8 +171,10 @@ const fetchBoard = useCallback(async () => {
             column={col}
             tasks={tasksForColumn(col._id)}
             boardId={id}
+            columns={columns}
             onAddTask={handleAddTask}
-            onDeleteTask={handleDeleteTask}
+            onTaskUpdate={handleTaskUpdate}
+            onTaskDelete={handleDeleteTask}
             onDeleteColumn={handleDeleteColumn}
           />
         ))}
