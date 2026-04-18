@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getBoardById } from "../api/boardApi";
 import { createTask, deleteTask } from "../api/taskApi";
@@ -17,11 +17,6 @@ const BoardPage = () => {
   const [loading, setLoading] = useState(true);
   const [newColTitle, setNewColTitle] = useState("");
   const [showColForm, setShowColForm] = useState(false);
-
-  useEffect(() => {
-    fetchBoard();
-  }, [id, navigate]);
-
   const socket = useSocket(id);
 
   useEffect(() => {
@@ -63,19 +58,25 @@ const BoardPage = () => {
     };
   }, [socket]);
 
-  const fetchBoard = async () => {
-    try {
-      const { data } = await getBoardById(id);
-      setBoard(data.board);
-      setColumns(data.columns);
-      setTasks(data.tasks);
-    } catch {
-      toast.error("Board not found");
-      navigate("/dashboard");
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Wrap fetchBoard in useCallback so it has a stable reference
+const fetchBoard = useCallback(async () => {
+  try {
+    const { data } = await getBoardById(id);
+    setBoard(data.board);
+    setColumns(data.columns);
+    setTasks(data.tasks);
+  } catch {
+    toast.error('Board not found');
+    navigate('/dashboard');
+  } finally {
+    setLoading(false);
+  }
+}, [id, navigate]);
+
+  // Now include fetchBoard in the dependency array safely
+  useEffect(() => {
+    fetchBoard();
+  }, [fetchBoard]);
 
   // Add task to a column
   const handleAddTask = async (taskData) => {
