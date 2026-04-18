@@ -7,6 +7,10 @@ const createColumn = async (req, res) => {
   try {
     const count  = await Column.countDocuments({ boardId });
     const column = await Column.create({ title, boardId, order: count });
+
+    // After createColumn:
+    req.io.to(boardId).emit('columnAdded', column);
+
     res.status(201).json(column);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -36,6 +40,10 @@ const deleteColumn = async (req, res) => {
 
     await Task.deleteMany({ columnId: column._id });
     await column.deleteOne();
+
+    // After deleteColumn:
+    req.io.to(column.boardId.toString()).emit('columnDeleted', { columnId: column._id });
+    
     res.json({ message: 'Column deleted' });
   } catch (error) {
     res.status(500).json({ message: error.message });
