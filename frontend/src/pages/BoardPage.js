@@ -20,7 +20,7 @@ const BoardPage = () => {
 
   useEffect(() => {
     fetchBoard();
-  }, [id]);
+  }, [id, navigate]);
 
   const socket = useSocket(id);
 
