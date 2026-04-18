@@ -73,7 +73,7 @@ const fetchBoard = useCallback(async () => {
   }
 }, [id, navigate]);
 
-  // Now include fetchBoard in the dependency array safely
+  //Now include fetchBoard in the dependency array safely
   useEffect(() => {
     fetchBoard();
   }, [fetchBoard]);
